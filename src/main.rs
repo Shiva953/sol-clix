@@ -65,7 +65,7 @@ fn main(){
     std::io::stdin().read_line(&mut option).expect("Failed to read line");
     let option = option.trim();
     let url: String;
-    match option {
+    match option.to_uppercase().as_str() {
         "A" => {
             url = "https://api.mainnet-beta.solana.com".to_string();
         },
