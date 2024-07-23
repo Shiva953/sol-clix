@@ -4,7 +4,16 @@ use spl_token::state::Mint;
 use solana_client::{rpc_client::RpcClient, rpc_request::TokenAccountsFilter};
 use clearscreen;
 use std::{collections::HashMap, str::FromStr};
-use anyhow::{self, Ok};
+use anyhow::{self};
+use solana_account_decoder::{UiAccountData, parse_account_data::ParsedAccount};
+// use serde_json::{Value, from_str};
+
+fn decode_ui_account_data(data: &UiAccountData) -> Option<&ParsedAccount> {
+    match data {
+        UiAccountData::Json(parsed_account) => Some(parsed_account),
+        _ => None,
+    }
+}
 
 pub fn transfer_sol_or_spl_token(
     connection: &RpcClient, 
@@ -90,26 +99,30 @@ pub fn get_token_mint_and_decimals(connection: &RpcClient, symbol: &str) -> Resu
     Ok((mint, decimals))
 }
 
-pub fn get_all_tokens_of_wallet(connection: &RpcClient, keypair: &Keypair) {
+pub fn get_all_tokens_of_wallet(connection: &RpcClient, keypair: &Keypair) -> Result<Vec<(String,f64)>, anyhow::Error>{
     clearscreen::clear().expect("Failed to clear the screen.");
     let owner = keypair.pubkey();
-    let token_accs = connection
+    let token_accounts_2022 = connection
         .get_token_accounts_by_owner(&owner, TokenAccountsFilter::ProgramId(spl_token_2022::id()))
         .expect("Tokens Not Found for the wallet");
-    for token_account in token_accs {
-        let token_pubkey = Pubkey::from_str(&token_account.pubkey).unwrap();
-        let balance = connection
-            .get_token_account_balance(&token_pubkey)
-            .unwrap()
-            .ui_amount_string;
-        // let data = token_account.account.data.decode().unwrap();
-        // let addr = serde_json::from_slice::<UiAccountData>(&data);
-        let data = token_account.account.data;
-        // let parsed_data: ParsedAccount = serde_json::from_value(serde_json::Value::String(addr.serialize(serializer))).expect("Failed to parse token account data");
-        println!("Balance: {balance}");
-        println!("Data: {:?}", data);
-        // println!("Mint: {:?}", parsed_data.parsed.info.mint);
+
+    let token_accounts = connection
+        .get_token_accounts_by_owner(&owner, TokenAccountsFilter::ProgramId(spl_token::id()))
+        .expect("Tokens Not Found for the wallet");
+
+    let mut token_accs = token_accounts_2022;
+    token_accs.extend(token_accounts);
+
+    let mut t_as = Vec::new();
+    for token_account in token_accs.iter() {
+        let data: &UiAccountData = &token_account.account.data;
+        let p_d = &decode_ui_account_data(&data).unwrap().parsed.as_object().unwrap();
+        let (mint, balance) = (p_d.get("info").unwrap().get("mint").unwrap().as_str().unwrap().to_string(), p_d.get("info").unwrap().get("tokenAmount").unwrap().get("uiAmount").unwrap().as_number().unwrap().as_f64().unwrap());
+        if balance!=0.0 {
+            t_as.push((mint, balance));
+        }
     }
+    Ok(t_as)
 }
 
 pub fn ensure_assoc_acc_exists(

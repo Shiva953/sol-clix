@@ -2,8 +2,7 @@ use clearscreen;
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{signature::Keypair, signer::Signer};
 pub use crate::wallet::{gen_sol_wallet, generate_and_save_mnemonic, import_and_save_private_key};
-use solana_account_decoder::UiAccountData;
-use crate::tui::{import::import_keypair, create::create_keypair, airdrop::airdrop, sol_txn::transfer_token};
+use crate::tui::{import::import_keypair, create::create_keypair, airdrop::airdrop, sol_txn::transfer_token, get_tokens::get_all_tokens};
 use colored::Colorize;
 pub fn show_menu(connection: &RpcClient){
     clearscreen::clear().expect("Failed to clear the screen.");
@@ -66,7 +65,7 @@ pub fn main_menu(connection: &RpcClient, keypair: &Keypair){
 
     match number {
         1 => {
-            // get_all_tokens_of_wallet(connection, &keypair);
+            get_all_tokens(connection, &keypair);
         },
         2 => {
             transfer_token(connection, &keypair);
