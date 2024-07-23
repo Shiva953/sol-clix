@@ -83,6 +83,7 @@ pub fn get_token_mint_and_decimals(connection: &RpcClient, symbol: &str) -> Resu
             x.decimals
         },
         Err(e) => {
+            println!("{:?}", e);
             2
         }
     };

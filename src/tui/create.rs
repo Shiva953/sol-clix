@@ -10,7 +10,7 @@ use tui::{
     text::{Spans, Span},
     Terminal,
 };
-use crossterm::{event::{self, Event, KeyCode}, execute, terminal::{EnterAlternateScreen, LeaveAlternateScreen}};
+use crossterm::{event::{self, Event, KeyCode}, execute, terminal::EnterAlternateScreen};
 use anyhow::Error;
 
 pub fn create_keypair() -> Result<Keypair, Error> {
@@ -31,21 +31,6 @@ pub fn create_keypair() -> Result<Keypair, Error> {
     // Simulate processing time
     // thread::sleep(Duration::from_secs(2));
 
-    terminal.draw(|f| {
-        let size = f.size();
-        let chunks = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints(
-                [
-                    Constraint::Max(2)
-                ]
-                .as_ref(),
-            )
-            .split(size);
-
-        
-    })?;
-
     let (_, keypairs) = gen_sol_wallet(&mnemonic);
     if keypairs.is_empty() {
         return Err(anyhow::anyhow!("No keypairs generated."));
@@ -57,7 +42,7 @@ pub fn create_keypair() -> Result<Keypair, Error> {
 
     for (i, pk) in keypairs.iter().enumerate() {
         text.push(Spans::from(Span::styled(format!("Account {}: {}", i + 1, pk.pubkey().to_string()), Style::default().fg(Color::White))));
-        text.push(Spans::from(Span::styled(format!("Associated Private Key: {:?}", pk.to_base58_string()), Style::default().fg(Color::Cyan).add_modifier(Modifier::SLOW_BLINK))));
+        text.push(Spans::from(Span::styled(format!("Associated Private Key: {:?}", pk.to_base58_string()), Style::default().fg(Color::Cyan).add_modifier(Modifier::RAPID_BLINK))));
     }
 
     let mut selected_option = String::new();
@@ -69,8 +54,8 @@ pub fn create_keypair() -> Result<Keypair, Error> {
                 .constraints(
                     [
                         Constraint::Max(6),
-                        Constraint::Percentage(60),
-                        Constraint::Percentage(20)
+                        Constraint::Percentage(50),
+                        Constraint::Max(3)
                     ]
                     .as_ref(),
                 )
@@ -97,7 +82,7 @@ pub fn create_keypair() -> Result<Keypair, Error> {
             ];
 
             let input_paragraph = Paragraph::new(input_instruction)
-                .block(Block::default().title("Input").borders(Borders::ALL));
+                .block(Block::default().title("Input"));
 
             f.render_widget(input_paragraph, chunks[2]);
         })?;

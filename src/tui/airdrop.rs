@@ -1,5 +1,4 @@
 use clearscreen;
-use colored::Colorize;
 use crossterm::style::Stylize;
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{signature::Keypair, signer::Signer};
