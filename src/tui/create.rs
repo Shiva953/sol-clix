@@ -99,10 +99,10 @@ pub fn create_keypair() -> Result<Keypair, Error> {
 
     let number: usize = selected_option.trim().parse().unwrap_or_default();
 
-    if number < keypairs.len() {
-        Ok(keypairs[number].insecure_clone())
+    if number < keypairs.len() && number>0 {
+        Ok(keypairs[number-1].insecure_clone())
     } else {
-        Err(anyhow::anyhow!("index must be less than 10"))
+        Err(anyhow::anyhow!("index must be in 1..10"))
     }
 
 }
